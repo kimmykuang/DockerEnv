@@ -3,54 +3,46 @@ services:
     application:
         build: ./application
         volumes:
-            - ~/Workbench/www:/application
-
-    docker-db:
-        build: ./mariadb
-        ports:
-            - "3306:3306"
-        # volumes:
-        #    - ./MariadbData:/var/lib/mysql
-        environment:
-            - MYSQL_ROOT_PASSWORD=123456
+          - ~/Workbench/www:/application
 
     docker-redis:
         build: ./redis
         ports:
-            - "6379:6379"
+          - "6379:6379"
 
-    # docker-memcached:
-    #     build: ./memcached
-    #     ports:
-    #         - "11211:11211"
 
-    docker-php:
+    docker-mariadb:
+        build: ./mariadb
+        ports:
+          - "3306:3306"
+        volumes:
+          - ./MariadbData:/var/lib/mysql
+        environment:
+          - MYSQL_ROOT_PASSWORD=123456
+
+    docker-php-fpm:
         build: ./php-fpm
-        expose:
-            - "9000"
+        ports:
+          - "9000:9000"
         volumes_from:
-            - application
+          - application
         links:
-            - docker-db:mysql
-            - docker-redis:redis
-            # - docker-memcached:memcached
+          - docker-mariadb:mysql
+          - docker-redis:redis
 
     docker-nginx:
         build:
             context: ./nginx
             args:
-                - PHP_UPSTREAM=fpm
+              - PHP_UPSTREAM=fpm
             dockerfile: Dockerfile
         ports:
-            - "80:80"
-            - "443:443"
+          - "80:80"
+          - "443:443"
         volumes_from:
-            - application
-        # environment:
-        #     - NGINX_ROOT=/application
+          - application
         volumes:
-            - ./nginx/nginx.conf:/etc/nginx/nginx.conf
-            - ./nginx/sites-enabled:/etc/nginx/sites-enabled
+          - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+          - ./nginx/sites-enabled:/etc/nginx/sites-enabled
         links:
-            - docker-php:fpm
-        # command: 
+          - docker-php-fpm:fpm

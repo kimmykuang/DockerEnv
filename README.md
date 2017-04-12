@@ -1,3 +1,8 @@
+### how to use?
+
+
+
+
 ### how to start?
 
 run command: `docker-compose up -d` in current dir, be sure docker has already running
